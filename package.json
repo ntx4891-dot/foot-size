@@ -1,0 +1,26 @@
+{
+  "name": "foot-size",
+  "version": "1.0.0",
+  "description": "Convert a measured foot length to a European shoe size, and make sense of the size strings real catalogues actually contain. Zero dependencies.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": "./src/index.js",
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "test": "node --test test/index.test.js"
+  },
+  "keywords": [
+    "shoe-size",
+    "eu-size",
+    "size-conversion",
+    "mondopoint",
+    "footwear",
+    "sizing"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}
