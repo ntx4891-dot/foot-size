@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>foot-size demo</title>
+<style>
+  :root{
+    color-scheme:light dark;
+    --ink:#12151a; --paper:#fbfaf7; --line:#d8d4cc; --accent:#b4501e; --muted:#6b6559;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --ink:#eceae5; --paper:#14161a; --line:#2e3238; --accent:#e8813f; --muted:#9a958b; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font:16px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  main{max-width:44rem;margin:0 auto;padding:3rem 1.25rem 5rem}
+  h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4rem;letter-spacing:-.01em}
+  .sub{color:var(--muted);margin:0 0 2.5rem}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em}
+  label{display:block;font-weight:600;margin-bottom:.4rem}
+  input{font:inherit;font-size:1.25rem;padding:.6rem .7rem;width:100%;max-width:11rem;
+    background:transparent;color:inherit;border:1px solid var(--line);border-radius:.4rem}
+  input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .hint{color:var(--muted);font-size:.88rem;margin:.4rem 0 0}
+  .out{margin:1.75rem 0 0;padding:1.1rem 1.25rem;border:1px solid var(--line);border-radius:.5rem;min-height:4rem}
+  .eu{font-size:1.5rem;font-weight:700;margin:0 0 .5rem}
+  .eu span{color:var(--accent)}
+  ul{margin:.5rem 0 0;padding-left:1.1rem}
+  li{margin:.15rem 0}
+  h2{font-size:1.05rem;margin:2.75rem 0 .5rem;letter-spacing:.02em;text-transform:uppercase;color:var(--muted)}
+  table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+  th,td{text-align:left;padding:.4rem .6rem;border-bottom:1px solid var(--line)}
+  td.bar div{height:.6rem;background:var(--accent);border-radius:1px}
+  footer{margin-top:3.5rem;color:var(--muted);font-size:.9rem}
+  a{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+  <h1>foot-size</h1>
+  <p class="sub">Measure a foot in centimetres, get the European size, and see what an
+  inventory really holds in it.</p>
+
+  <label for="cm">Foot length, centimetres</label>
+  <input id="cm" type="number" inputmode="decimal" min="18" max="36" step="0.1" placeholder="26.5" autofocus>
+  <p class="hint">Heel to the wall, mark the longest toe, measure in the evening.</p>
+
+  <div class="out" id="out" aria-live="polite">
+    <p class="eu">Enter a measurement.</p>
+  </div>
+
+  <h2>Sample inventory, by size</h2>
+  <table id="hist"><tbody></tbody></table>
+
+  <footer>
+    <p>Sample data only, twelve invented items. <a href="../README.md">Read the README</a>
+    for why this converts from centimetres and refuses to guess a UK or US size.</p>
+  </footer>
+</main>
+
+<script type="module">
+import { euFromFootCm, inSize, sizeHistogram } from '../src/index.js';
+
+/* Invented stock, written to include the six size notations the README describes
+   so the demo exercises normaliseEu rather than only the happy path. */
+const INVENTORY = [
+  { name: 'Low-top canvas',      sizes: ['39', '40', '41', '42', '43'] },
+  { name: 'Suede runner',        sizes: ['40', '41', '42⅓', '43', '44'] },
+  { name: 'Mesh trail shoe',     sizes: ['41', '42  1/3', '43', '44', '45'] },
+  { name: 'Leather derby',       sizes: ['40', '41', '42', '43'] },
+  { name: 'Chunky retro',        sizes: ['42.5', '43', '44', '45', '46'] },
+  { name: 'Slip-on mule',        sizes: ['37', '38', '39', '40'] },
+  { name: 'Court sneaker',       sizes: ['38', '39', '40', '41', '42'] },
+  { name: 'Padded boot',         sizes: ['43', '44', '45', '46'] },
+  { name: 'Knit sock trainer',   sizes: ['39', '40½', '41', '42'] },
+  { name: 'Gum-sole skate shoe', sizes: ['41', '42', '42⅔', '43'] },
+  { name: 'Minimal white pair',  sizes: ['36', '37', '38', '39', '40'] },
+  { name: 'Wide-fit walker',     sizes: ['44', '45', '46'] },
+];
+
+const cm = document.getElementById('cm');
+const out = document.getElementById('out');
+
+cm.addEventListener('input', () => {
+  const eu = euFromFootCm(parseFloat(cm.value));
+  if (eu === null) {
+    out.innerHTML = cm.value
+      ? '<p class="eu">Outside the table.</p><p class="hint">The library returns null rather than guessing.</p>'
+      : '<p class="eu">Enter a measurement.</p>';
+    return;
+  }
+  const hits = inSize(INVENTORY, eu);
+  out.innerHTML =
+    `<p class="eu">EU <span>${eu}</span> — ${hits.length} of ${INVENTORY.length}</p>` +
+    (hits.length ? `<ul>${hits.map((i) => `<li>${i.name}</li>`).join('')}</ul>` : '');
+});
+
+const hist = sizeHistogram(INVENTORY);
+const peak = Math.max(...hist.values());
+document.querySelector('#hist tbody').innerHTML = [...hist.entries()]
+  .map(
+    ([size, n]) =>
+      `<tr><th scope="row">${size}</th><td>${n}</td>` +
+      `<td class="bar"><div style="width:${Math.round((n / peak) * 100)}%"></div></td></tr>`
+  )
+  .join('');
+</script>
+</body>
+</html>
