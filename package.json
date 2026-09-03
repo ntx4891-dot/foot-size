@@ -2,6 +2,14 @@
   "name": "foot-size",
   "version": "1.0.0",
   "description": "Convert a measured foot length to a European shoe size, and make sense of the size strings real catalogues actually contain. Zero dependencies.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ntx4891-dot/foot-size.git"
+  },
+  "homepage": "https://github.com/ntx4891-dot/foot-size#readme",
+  "bugs": {
+    "url": "https://github.com/ntx4891-dot/foot-size/issues"
+  },
   "type": "module",
   "main": "src/index.js",
   "exports": "./src/index.js",
@@ -22,5 +30,6 @@
   "license": "MIT",
   "engines": {
     "node": ">=18"
-  }
+  },
+  "sideEffects": false
 }
