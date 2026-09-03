@@ -34,9 +34,9 @@ registered for selected text receives that text and nothing else.
 
 ## Permissions
 
-- `storage` — remembers your foot length so you do not retype it
-- `contextMenus` — adds the one right-click item
-- `notifications` — shows the answer after a right-click
+- `storage`: remembers your foot length so you do not retype it
+- `contextMenus`: adds the one right-click item
+- `notifications`: shows the answer after a right-click
 
 ## Children
 
