@@ -1,0 +1,45 @@
+# Publishes to npm when a v* tag is pushed.
+#
+# There is no npm token anywhere in this repo or in the repository secrets.
+# npm's trusted publishing hands the workflow a short-lived OIDC credential
+# instead, which is why `id-token: write` below is not optional. That also means
+# the only way to publish this package is to push a tag to this repository, and
+# a leaked secret cannot be used to publish it from anywhere else.
+name: publish
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      # Trusted publishing needs a newer npm than the one bundled with Node 22.
+      - run: npm install -g npm@latest
+
+      # A tag that disagrees with package.json would publish a version nobody
+      # asked for, under a tag pointing at different code. Refuse instead.
+      - name: Tag must match package.json
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pkg="$(node -p 'require("./package.json").version')"
+          if [ "$tag" != "$pkg" ]; then
+            echo "tag $GITHUB_REF_NAME says $tag, package.json says $pkg" >&2
+            exit 1
+          fi
+          echo "both say $pkg"
+
+      - run: npm test
+
+      - run: npm publish
