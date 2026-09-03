@@ -41,6 +41,8 @@ function judge() {
     verdict.textContent = 'Waiting for a list.';
     return;
   }
+  // Split on anything that is not part of a size. The double space in
+  // "42  1/3" survives because the fraction is glued back on by normaliseEu.
   const found = parseSizeList(text);
   if (!found.length) {
     verdict.textContent = 'No European sizes found in that text.';

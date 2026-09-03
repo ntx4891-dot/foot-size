@@ -76,6 +76,22 @@ notations above. Rejects things that are not adult EU sizes, including a bare
 `"9"` (a UK size wearing a familiar shape) and `"110cm"` (a belt length that
 arrived in the same feed).
 
+### `parseSizeList(text)`
+
+Pull the EU sizes out of a block of text copied off a shop, ascending and
+deduplicated.
+
+The separators are the problem, not the numbers. A size row arrives as
+`40 41 42`, or `40, 41, 42`, or `40 | 41 | 42`, or one per line from a column of
+buttons, or `40  41  42  1/3` with double spaces and a fraction that must stay
+glued to its size. That last one is why this cannot simply split on whitespace:
+`42  1/3` is one size, and splitting it gives you `42` and `1/3`, the second of
+which is not a size at all.
+
+```js
+parseSizeList('Available sizes: 41  42  1/3  43. Ships in 2 days.');  // [41, 42, 43]
+```
+
 ### `wholeSizes(sizes)`
 
 A mixed size list collapsed to ascending, deduplicated whole sizes.
@@ -127,6 +143,33 @@ The library is only as good as the number you hand it.
 `demo/index.html` is a single static file with no build step. Open it directly, or
 serve the folder, and it will convert a measurement and filter a small sample
 inventory.
+
+## Browser extension
+
+`extension/` is a Manifest V3 extension built on this library. Set your foot
+length once, then select the sizes on any shop, right-click, and it tells you
+whether your size is really in that list.
+
+It asks for **no host permissions**. A context menu registered for the selection
+context receives the selected text on its own, so the extension never reads,
+injects into, or even learns the URL of the page you are on. Scraping the page
+for sizes would be more automatic and would need permission to read every site
+you visit, which is a poor trade for a size converter.
+
+To run it unpacked:
+
+```
+npm run icons
+```
+
+then open `chrome://extensions`, turn on Developer mode, choose **Load unpacked**
+and pick the `extension` folder. The icons step is needed first because they are
+generated rather than committed.
+
+The icons are drawn by `extension/make-icons.js` rather than committed as opaque
+binaries, so they can be changed by editing two ellipses and reviewed as a diff. `extension/lib/` holds
+a copy of `src/index.js`, because an extension cannot import from outside its own
+root; a test fails if the two ever drift apart.
 
 ## Licence
 

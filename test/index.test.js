@@ -8,6 +8,7 @@ import {
   wholeSizes,
   inSize,
   sizeHistogram,
+  parseSizeList,
 } from '../src/index.js';
 
 test('converts a measured foot to an EU size', () => {
@@ -101,4 +102,46 @@ test('survives an empty or absent inventory', () => {
   assert.deepEqual(inSize([], 42), []);
   assert.deepEqual(inSize(undefined, 42), []);
   assert.equal(sizeHistogram(undefined).size, 0);
+});
+
+test('the extension ships the same library as the package', async () => {
+  /**
+   * A browser extension cannot import from outside its own root, so
+   * extension/lib/foot-size.js is a copy of src/index.js. A copy is a thing
+   * that drifts: the conversion table gets corrected in one place, the
+   * extension keeps shipping the old one, and nothing anywhere fails. This is
+   * the only thing standing between that and a user.
+   *
+   * If this fails, run: cp src/index.js extension/lib/foot-size.js
+   */
+  const { readFileSync } = await import('node:fs');
+  const { fileURLToPath } = await import('node:url');
+  const at = (p) => readFileSync(fileURLToPath(new URL(p, import.meta.url)), 'utf8');
+  assert.equal(
+    at('../extension/lib/foot-size.js'),
+    at('../src/index.js'),
+    'extension/lib/foot-size.js has drifted from src/index.js'
+  );
+});
+
+test('pulls sizes out of the separators real shops use', () => {
+  assert.deepEqual(parseSizeList('40 41 42 43'), [40, 41, 42, 43]);
+  assert.deepEqual(parseSizeList('40, 41, 42'), [40, 41, 42]);
+  assert.deepEqual(parseSizeList('40 | 41 | 42'), [40, 41, 42]);
+  assert.deepEqual(parseSizeList('40\n41\n42'), [40, 41, 42]);
+  assert.deepEqual(parseSizeList('EU 40  EU 41  EU 42'), [40, 41, 42]);
+});
+
+test('keeps a spaced fraction glued to its size', () => {
+  // "42  1/3" is ONE size. Split naively it becomes 42 and 1/3, and the second
+  // is not a size at all.
+  assert.deepEqual(parseSizeList('41  42  1/3  43'), [41, 42, 43]);
+  assert.deepEqual(parseSizeList('42⅓ 42⅔ 43'), [42, 43]);
+});
+
+test('ignores the prose around a size row', () => {
+  assert.deepEqual(parseSizeList('Available sizes: 41, 42, 43. Ships in 2 days.'), [41, 42, 43]);
+  assert.deepEqual(parseSizeList('no sizes here at all'), []);
+  assert.deepEqual(parseSizeList(''), []);
+  assert.deepEqual(parseSizeList(null), []);
 });
