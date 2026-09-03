@@ -167,3 +167,31 @@ export function sizeHistogram(items, getSizes = (i) => i.sizes) {
   }
   return new Map([...counts.entries()].sort((a, b) => a[0] - b[0]));
 }
+
+/**
+ * Pull the EU sizes out of a block of text copied off a shop.
+ *
+ * ⚠ THE SEPARATORS ARE THE PROBLEM, NOT THE NUMBERS. A size row on a real
+ * listing arrives as any of these, and often several at once:
+ *
+ *     40 41 42 43            single spaces
+ *     40, 41, 42             commas
+ *     40 | 41 | 42           pipes
+ *     40\n41\n42             one per line, from a column of buttons
+ *     40  41  42  1/3        double spaces AND a fraction that must stay glued
+ *
+ * The last one is why this cannot simply split on whitespace: "42  1/3" is one
+ * size, and splitting it produces "42" and "1/3", the second of which is not a
+ * size at all. So the split happens on real delimiters, and on a space only
+ * where the next token starts a fresh two-digit number.
+ *
+ * @param {string} text
+ * @returns {number[]} whole EU sizes, ascending, deduplicated
+ */
+export function parseSizeList(text) {
+  return wholeSizes(
+    String(text ?? '')
+      .split(/[,;|/\n\t]+|\s{3,}/)
+      .flatMap((part) => part.split(/\s+(?=\d{2})/))
+  );
+}
