@@ -138,6 +138,12 @@ The library is only as good as the number you hand it.
 3. Measure from the wall to the mark in centimetres, and do both feet.
 4. Take the larger figure, and measure in the evening when the foot is widest.
 
+## Live
+
+The same code runs at https://beithadil.com/size against a catalogue of 149 real pairs.
+Type your foot length and it tells you which of them actually exist in your size, rather
+than just converting the number.
+
 ## Demo
 
 `demo/index.html` is a single static file with no build step. Open it directly, or
